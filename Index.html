@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie Clicker Master</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #3a2212;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            user-select: none;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated Admin Control Panel Overlay */
+        .admin-panel {
+            position: absolute;
+            top: -160px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 500px;
+            height: 120px;
+            background-color: #110904;
+            border: 3px solid #cb4335;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            z-index: 1000;
+            padding: 15px;
+            box-sizing: border-box;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: top 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .admin-panel.open {
+            top: 0;
+        }
+
+        .admin-title {
+            font-size: 13px;
+            color: #cb4335;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+            margin: 0;
+        }
+
+        .admin-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .admin-input {
+            background-color: #24140a;
+            border: 2px solid #5c3a21;
+            border-radius: 4px;
+            color: #fff;
+            padding: 5px 10px;
+            font-size: 14px;
+            width: 160px;
+            outline: none;
+        }
+
+        .admin-btn {
+            background-color: #27ae60;
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .admin-btn:hover { background-color: #2ecc71; }
+        
+        .admin-btn.danger-btn { background-color: #c0392b; }
+        .admin-btn.danger-btn:hover { background-color: #e74c3c; }
+
+        .game-container {
+            display: flex;
+            background-color: #24140a;
+            border: 4px solid #5c3a21;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 1240px;
+            height: 640px;
+            gap: 15px;
+            z-index: 10;
+        }
+
+        /* Left Section: Clicking Area & Skins Layout */
+        .clicker-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            border-right: 2px solid #5c3a21;
+            padding-right: 15px;
+            position: relative;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .stats-panel {
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        #cookie-count {
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        #cps-count {
+            font-size: 14px;
+            color: #b39274;
+        }
+
+        #frenzy-timer {
+            font-size: 14px;
+            color: #ffcc00;
+            font-weight: bold;
+            height: 18px;
+            margin-top: 2px;
+            text-shadow: 0 0 8px rgba(255, 204, 0, 0.6);
+            visibility: hidden;
+        }
+
+        .cookie-wrapper {
+            position: relative;
+            width: 240px;
+            height: 240px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .cookie {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            z-index: 5;
+            transform-origin: center center;
+            transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+        }
+
+        /* Skin Varieties */
+        .cookie.skin-classic {
+            background-color: #e69a3b;
+            border: 8px solid #c27d28;
+            box-shadow: 0 8px 0 #9c611c, 0 15px 20px rgba(0,0,0,0.4);
+        }
+        .cookie.skin-classic::before {
+            content: ''; position: absolute; top: 25px; left: 35px; width: 22px; height: 22px; background-color: #523012; border-radius: 50%;
+            box-shadow: 50px 15px 0 #523012, 15px 65px 0 #523012, 75px 75px 0 #523012, 35px 105px 0 #523012, 80px 25px 0 #523012;
+        }
+
+        .cookie.skin-dark {
+            background-color: #402211;
+            border: 8px solid #2d170b;
+            box-shadow: 0 8px 0 #1f0f07, 0 15px 20px rgba(0,0,0,0.5);
+        }
+        .cookie.skin-dark::before {
+            content: ''; position: absolute; top: 35px; left: 45px; width: 20px; height: 20px; background-color: #1a0d05; border-radius: 30%;
+            box-shadow: 40px 10px 0 #1a0d05, 10px 60px 0 #1a0d05, 70px 70px 0 #1a0d05, 25px 95px 0 #1a0d05, 80px 20px 0 #1a0d05;
+        }
+
+        .cookie.skin-redvelvet {
+            background-color: #b01b2e;
+            border: 8px solid #85101f;
+            box-shadow: 0 8px 0 #5e0813, 0 15px 20px rgba(0,0,0,0.4);
+        }
+        .cookie.skin-redvelvet::before {
+            content: ''; position: absolute; top: 30px; left: 30px; width: 22px; height: 22px; background-color: #fcebeb; border-radius: 50%;
+            box-shadow: 60px 25px 0 #fcebeb, 20px 75px 0 #fcebeb, 75px 85px 0 #fcebeb, 35px 110px 0 #fcebeb, 85px 30px 0 #fcebeb;
+        }
+
+        .cookie.skin-mint {
+            background-color: #5bf2b8;
+            border: 8px solid #3cb587;
+            box-shadow: 0 8px 0 #288260, 0 15px 20px rgba(0,0,0,0.3);
+        }
+        .cookie.skin-mint::before {
+            content: ''; position: absolute; top: 40px; left: 40px; width: 22px; height: 18px; background-color: #24140a; border-radius: 40%;
+            box-shadow: 40px 15px 0 #24140a, 15px 55px 0 #24140a, 65px 75px 0 #24140a, 30px 95px 0 #24140a, 75px 25px 0 #24140a;
+        }
+
+        .cookie.skin-gold {
+            background: radial-gradient(circle, #ffe066 0%, #f5b041 100%);
+            border: 8px solid #d4ac0d;
+            box-shadow: 0 8px 0 #9a7d0a, 0 15px 25px rgba(245, 176, 65, 0.4);
+        }
+        .cookie.skin-gold::before {
+            content: ''; position: absolute; top: 25px; left: 40px; width: 20px; height: 20px; background-color: #ffffff; border-radius: 50%;
+            box-shadow: 55px 20px 0 #ffffff, 10px 65px 0 #ffffff, 80px 80px 0 #ffffff, 35px 110px 0 #ffffff, 75px 30px 0 #ffffff;
+            filter: drop-shadow(0 0 4px #fff);
+        }
+
+        .cookie.clicked {
+            animation: cookieScalePop 0.2s cubic-bezier(0.25, 1.5, 0.5, 1) forwards;
+        }
+
+        @keyframes cookieScalePop {
+            0% { transform: scale(1); }
+            15% { transform: scale(1.12); }
+            100% { transform: scale(1); }
+        }
+
+        .golden-cookie {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle, #fff3cc 0%, #f1c40f 100%);
+            border: 3px solid #f39c12;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 50;
+            box-shadow: 0 0 15px #f1c40f, inset 0 2px 4px rgba(255,255,255,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            color: #b7791f;
+            animation: goldenFloat 7s linear forwards;
+        }
+
+        @keyframes goldenFloat {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            10% { transform: scale(1) rotate(15deg); opacity: 1; }
+            90% { transform: scale(1) rotate(135deg); opacity: 1; }
+            100% { transform: scale(0) rotate(150deg); opacity: 0; }
+        }
+
+        .skins-panel-left {
+            width: 100%;
+            background-color: #1a0d05;
+            border-radius: 8px;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 2px solid #5c3a21;
+        }
+
+        .skins-panel-left h3 {
+            margin: 0 0 6px 0;
+            font-size: 12px;
+            color: #b39274;
+            text-transform: uppercase;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .skins-horizontal-container {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .skins-horizontal-container::-webkit-scrollbar { height: 4px; }
+        .skins-horizontal-container::-webkit-scrollbar-thumb { background: #5c3a21; border-radius: 2px; }
+
+        .skins-horizontal-container .skin-item {
+            flex: 0 0 95px;
+            background-color: #4a2d18;
+            border: 2px solid #734929;
+            border-radius: 6px;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            text-align: center;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+        .skins-horizontal-container .skin-item:hover:not(.disabled) { background-color: #5c3a21; }
+        .skins-horizontal-container .skin-item.disabled { opacity: 0.4; cursor: not-allowed; background-color: #2e1b0e; }
+        .skins-horizontal-container .skin-item.equipped { border-color: #f4be42; background-color: #5c3a21; }
+
+        .skin-mini-title { font-weight: bold; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        .skin-mini-cost { color: #f4be42; font-size: 10px; margin-top: 1px; }
+        .skin-btn-status { font-size: 10px; font-weight: bold; padding: 2px 6px; background-color: #24140a; border-radius: 3px; border: 1px solid #734929; margin-top: 4px; width: 80%; }
+        .equipped .skin-btn-status { color: #f4be42; border-color: #f4be42; }
+
+        /* CENTER PANEL: Visual Kingdom & Historical Stats Layout */
+        .center-dashboard-section {
+            flex: 1.3;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            height: 100%;
+            box-sizing: border-box;
+            border-right: 2px solid #5c3a21;
+            padding-right: 15px;
+        }
+
+        .visual-kingdom-section {
+            flex: 1.4;
+            background-color: #1a0d05;
+            border: 2px solid #5c3a21;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            min-height: 0;
+        }
+
+        .visual-kingdom-section h2, .stats-dashboard-section h2 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            color: #f4be42;
+            border-bottom: 2px solid #5c3a21;
+            padding-bottom: 4px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .kingdom-display-box {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 5px;
+        }
+
+        .kingdom-display-box::-webkit-scrollbar, .stats-scroll-box::-webkit-scrollbar { width: 6px; }
+        .kingdom-display-box::-webkit-scrollbar-thumb, .stats-scroll-box::-webkit-scrollbar-thumb { background: #5c3a21; border-radius: 4px; }
+
+        .asset-visual-row {
+            background-color: #2e1b0e;
+            border: 1px solid #4a2d18;
+            border-radius: 6px;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .asset-row-header {
+            font-size: 12px;
+            font-weight: bold;
+            color: #b39274;
+            border-bottom: 1px dashed #4a2d18;
+            padding-bottom: 2px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .asset-header-left {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .sell-btn {
+            background-color: #a93226;
+            color: white;
+            border: 1px solid #78281f;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 1px 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        .sell-btn:hover { background-color: #cb4335; }
+
+        .asset-icons-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            font-size: 18px;
+        }
+
+        .visual-icon-unit {
+            animation: assetPopIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            display: inline-block;
+        }
+
+        @keyframes assetPopIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        /* Stats & Prestige Analytics Sub-Panel */
+        .stats-dashboard-section {
+            flex: 1.1;
+            background-color: #1a0d05;
+            border: 2px solid #5c3a21;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            min-height: 0;
+        }
+
+        .stats-two-column {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .stats-scroll-box {
+            flex: 1.2;
+            overflow-y: auto;
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-right: 4px;
+            color: #b39274;
+        }
+
+        .stat-line {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #2e1b0e;
+            padding-bottom: 2px;
+        }
+        .stat-line span:last-child { color: white; font-weight: bold; }
+
+        /* Styled Keybind Helper Tag */
+        .admin-keybind-tip {
+            border-top: 1px dashed #5c3a21;
+            margin-top: 4px;
+            padding-top: 5px;
+            font-size: 10px;
+            color: #c0392b;
+            text-align: center;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .prestige-box {
+            flex: 0.9;
+            background-color: #24140a;
+            border: 1px solid #734929;
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            text-align: center;
+        }
+
+        .prestige-title { font-size: 12px; font-weight: bold; color: #f4be42; text-transform: uppercase; }
+        .prestige-count { font-size: 20px; font-weight: bold; color: #ffe066; margin: 2px 0; text-shadow: 0 0 6px rgba(255,224,102,0.4); }
+        .prestige-bonus { font-size: 10px; color: #b39274; }
+
+        .ascend-btn {
+            background-color: #7d3c98;
+            color: white;
+            border: 1px solid #5b2c6f;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 5px 10px;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+        }
+        .ascend-btn:hover:not(.locked) { background-color: #9b59b6; }
+        .ascend-btn.locked { opacity: 0.4; cursor: not-allowed; background-color: #4a285a; }
+
+        /* Orbiting Configuration Styling */
+        .orbit-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 4;
+            animation: spinOrbit 25s linear infinite;
+        }
+
+        @keyframes spinOrbit {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .orbiting-cursor {
+            position: absolute;
+            font-size: 18px;
+            width: 24px;
+            height: 24px;
+            left: 50%;
+            top: 50%;
+            margin-left: -12px;
+            margin-top: -12px;
+            transform-origin: center center;
+            opacity: 0.85;
+        }
+
+        /* Floating Text Animation */
+        .floating-number {
+            position: absolute;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8), -1px -1px 0 #000;
+            font-weight: bold;
+            font-size: 22px;
+            pointer-events: none;
+            animation: floatUp 0.8s ease-out forwards;
+            z-index: 10;
+        }
+
+        .achievement-alert {
+            position: absolute;
+            color: #f4be42;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.9), -1px -1px 0 #000;
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+            width: 90%;
+            pointer-events: none;
+            animation: alertFadeUp 2.5s ease-in-out forwards;
+            z-index: 12;
+            bottom: 110px;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translate(-50%, -50%) translateY(0) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) translateY(-60px) scale(0.85); }
+        }
+
+        @keyframes alertFadeUp {
+            0% { opacity: 0; transform: translateY(10px); }
+            15% { opacity: 1; transform: translateY(0); }
+            85% { opacity: 1; transform: translateY(-5px); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+
+        /* Right Section: Store Configuration Panels */
+        .right-section {
+            flex: 1.1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .right-section h2 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            color: #f4be42;
+            border-bottom: 2px solid #5c3a21;
+            padding-bottom: 3px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .shop-section {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 6px;
+            margin-bottom: 8px;
+        }
+
+        .shop-section::-webkit-scrollbar { width: 6px; }
+        .shop-section::-webkit-scrollbar-thumb { background: #5c3a21; border-radius: 4px; }
+
+        .upgrade-item {
+            background-color: #4a2d18;
+            border: 2px solid #734929;
+            border-radius: 8px;
+            padding: 6px 10px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .upgrade-item:hover:not(.disabled) { background-color: #5c3a21; }
+        .upgrade-item.disabled { opacity: 0.4; cursor: not-allowed; background-color: #2e1b0e; }
+        .item-info-left { display: flex; flex-direction: column; }
+        .item-name { font-weight: bold; font-size: 14px; }
+        .item-cost { color: #f4be42; font-size: 12px; margin-top: 1px; }
+        .item-count { font-size: 16px; font-weight: bold; color: #b39274; }
+
+        /* Achievements Layout Section */
+        .achievements-section {
+            border-top: 2px solid #5c3a21;
+            padding-top: 6px;
+        }
+
+        .achievements-grid {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .achievement-badge {
+            width: 33px;
+            height: 33px;
+            border-radius: 6px;
+            background-color: #2e1b0e;
+            border: 2px solid #5c3a21;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            position: relative;
+            opacity: 0.15;
+            filter: grayscale(100%);
+            transition: all 0.3s ease;
+        }
+
+        .achievement-badge.unlocked {
+            opacity: 1;
+            filter: grayscale(0%);
+            border-color: #f4be42;
+            background-color: #4a2d18;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.6); }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .achievement-badge:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #110904;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            z-index: 100;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            border: 1px solid #734929;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="admin-panel" id="cheat-panel">
+        <h3 class="admin-title">🛠️ Overlord Admin Console</h3>
+        <div class="admin-row">
+            <input type="number" class="admin-input" id="admin-cookies-amount" placeholder="Quantity of cookies..." min="0">
+            <button class="admin-btn" id="admin-add-cookies-btn">Inject Cookies</button>
+        </div>
+        <div class="admin-row">
+            <button class="admin-btn danger-btn" id="admin-reset-stats-btn">Full Wipe Hard Reset Progress</button>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <div class="clicker-section" id="clicker-zone">
+            <div class="stats-panel">
+                <div id="cookie-count">0 cookies</div>
+                <div id="cps-count">per second: 0</div>
+                <div id="frenzy-timer">Frenzy: 5s remaining</div>
+            </div>
+            
+            <div class="cookie-wrapper" id="cookie-wrapper">
+                <div class="orbit-container" id="orbit-ring"></div>
+                <div class="cookie skin-classic" id="cookie-btn"></div>
+            </div>
+
+            <div class="skins-panel-left">
+                <h3>Cookie Cosmetics</h3>
+                <div class="skins-horizontal-container">
+                    <div class="skin-item equipped" id="skin-classic" data-skin="classic">
+                        <span class="skin-mini-title">Classic</span>
+                        <span class="skin-mini-cost">Default</span>
+                        <div class="skin-btn-status" id="status-classic">Equipped</div>
+                    </div>
+                    <div class="skin-item disabled" id="skin-dark" data-skin="dark">
+                        <span class="skin-mini-title">🍫 Dark Choc</span>
+                        <span class="skin-mini-cost" id="cost-dark">300</span>
+                        <div class="skin-btn-status" id="status-dark">Buy</div>
+                    </div>
+                    <div class="skin-item disabled" id="skin-redvelvet" data-skin="redvelvet">
+                        <span class="skin-mini-title">🍒 Red Velvet</span>
+                        <span class="skin-mini-cost" id="cost-redvelvet">5,000</span>
+                        <div class="skin-btn-status" id="status-redvelvet">Buy</div>
+                    </div>
+                    <div class="skin-item disabled" id="skin-mint" data-skin="mint">
+                        <span class="skin-mini-title">🌿 Mint Chip</span>
+                        <span class="skin-mini-cost" id="cost-mint">75,000</span>
+                        <div class="skin-btn-status" id="status-mint">Buy</div>
+                    </div>
+                    <div class="skin-item disabled" id="skin-gold" data-skin="gold">
+                        <span class="skin-mini-title">✨ Golden</span>
+                        <span class="skin-mini-cost" id="cost-gold">1.0M</span>
+                        <div class="skin-btn-status" id="status-gold">Buy</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="center-dashboard-section">
+            <div class="visual-kingdom-section">
+                <h2>Your Kingdom</h2>
+                <div class="kingdom-display-box" id="kingdom-display">
+                    
+                    <div class="asset-visual-row" id="row-cursor" style="display: none;">
+                        <div class="asset-row-header">
+                            <div class="asset-header-left">
+                                <span class="row-title">Cursors</span>
+                                <button class="sell-btn" id="sell-cursor">Sell 1</button>
+                            </div>
+                            <span id="v-count-cursor">0</span>
+                        </div>
+                        <div class="asset-icons-container" id="icons-cursor"></div>
+                    </div>
+
+                    <div class="asset-visual-row" id="row-grandma" style="display: none;">
+                        <div class="asset-row-header">
+                            <div class="asset-header-left">
+                                <span class="row-title">Grandmas</span>
+                                <button class="sell-btn" id="sell-grandma">Sell 1</button>
+                            </div>
+                            <span id="v-count-grandma">0</span>
+                        </div>
+                        <div class="asset-icons-container" id="icons-grandma"></div>
+                    </div>
+
+                    <div class="asset-visual-row" id="row-farm" style="display: none;">
+                        <div class="asset-row-header">
+                            <div class="asset-header-left">
+                                <span class="row-title">Farms</span>
+                                <button class="sell-btn" id="sell-farm">Sell 1</button>
+                            </div>
+                            <span id="v-count-farm">0</span>
+                        </div>
+                        <div class="asset-icons-container" id="icons-farm"></div>
+                    </div>
+
+                    <div class="asset-visual-row" id="row-mine" style="display: none;">
+                        <div class="asset-row-header">
+                            <div class="asset-header-left">
+                                <span class="row-title">Mines</span>
+                                <button class="sell-btn" id="sell-mine">Sell 1</button>
+                            </div>
+                            <span id="v-count-mine">0</span>
+                        </div>
+                        <div class="asset-icons-container" id="icons-mine"></div>
+                    </div>
+
+                    <div class="asset-visual-row" id="row-factory" style="display: none;">
+                        <div class="asset-row-header">
+                            <div class="asset-header-left">
+                                <span class="row-title">Factories</span>
+                                <button class="sell-btn" id="sell-factory">Sell 1</button>
+                            </div>
+                            <span id="v-count-factory">0</span>
+                        </div>
+                        <div class="asset-icons-container" id="icons-factory"></div>
+                    </div>
+
+                    <div class="asset-visual-row" id="row-bank" style="display: none;">
+                        <div class="asset-row-header">
+                            <div class="asset-header-left">
+                                <span class="row-title">Banks</span>
+                                <button class="sell-btn" id="sell-bank">Sell 1</button>
+                            </div>
+                            <span id="v-count-bank">0</span>
+                        </div>
+                        <div class="asset-icons-container" id="icons-bank"></div>
+                    </div>
+
+                    <div class="asset-visual-row" id="row-alchemy" style="display: none;">
+                        <div class="asset-row-header">
+                            <div class="asset-header-left">
+                                <span class="row-title">Alchemy Labs</span>
+                                <button class="sell-btn" id="sell-alchemy">Sell 1</button>
+                            </div>
+                            <span id="v-count-alchemy">0</span>
+                        </div>
+                        <div class="asset-icons-container" id="icons-alchemy"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-dashboard-section">
+                <h2>Statistics & Ascension</h2>
+                <div class="stats-two-column">
+                    <div class="stats-scroll-box">
+                        <div class="stat-line"><span>Time Elapsed:</span><span id="stat-time">0s</span></div>
+                        <div class="stat-line"><span>Manual Cookie Clicks:</span><span id="stat-clicks">0</span></div>
+                        <div class="stat-line"><span>Golden Cookies Clicked:</span><span id="stat-goldens">0</span></div>
+                        <div class="stat-line"><span>Cookies Spent in Store:</span><span id="stat-spent">0</span></div>
+                        <div class="stat-line"><span>Cookies Earned from Refunds:</span><span id="stat-refunded">0</span></div>
+                        <div class="stat-line"><span>All-Time Legacy Harvest:</span><span id="stat-legacy">0</span></div>
+                        <div class="admin-keybind-tip">🔑 Press [ ` ] (Backtick Key) to toggle Admin Panel</div>
+                    </div>
+
+                    <div class="prestige-box">
+                        <span class="prestige-title">Prestige Level</span>
+                        <div class="prestige-count" id="prestige-chips-display">0</div>
+                        <span class="prestige-bonus" id="prestige-bonus-display">Production Bonus: +0%</span>
+                        <button class="ascend-btn locked" id="ascend-action-btn">Ascend (Req: 1.0M Legacy)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-section">
+            <h2>Store</h2>
+            <div class="shop-section">
+                <div class="upgrade-item disabled" id="buy-cursor">
+                    <div class="item-info-left">
+                        <span class="item-name">Cursor</span>
+                        <span class="item-cost" id="cursor-cost">Cost: 15</span>
+                    </div>
+                    <div class="item-count" id="cursor-count">0</div>
+                </div>
+
+                <div class="upgrade-item disabled" id="buy-grandma">
+                    <div class="item-info-left">
+                        <span class="item-name">Grandma</span>
+                        <span class="item-cost" id="grandma-cost">Cost: 100</span>
+                    </div>
+                    <div class="item-count" id="grandma-count">0</div>
+                </div>
+
+                <div class="upgrade-item disabled" id="buy-farm">
+                    <div class="item-info-left">
+                        <span class="item-name">Farm</span>
+                        <span class="item-cost" id="farm-cost">Cost: 1,100</span>
+                    </div>
+                    <div class="item-count" id="farm-count">0</div>
+                </div>
+
+                <div class="upgrade-item disabled" id="buy-mine">
+                    <div class="item-info-left">
+                        <span class="item-name">Mine</span>
+                        <span class="item-cost" id="mine-cost">Cost: 12,000</span>
+                    </div>
+                    <div class="item-count" id="mine-count">0</div>
+                </div>
+
+                <div class="upgrade-item disabled" id="buy-factory">
+                    <div class="item-info-left">
+                        <span class="item-name">Factory</span>
+                        <span class="item-cost" id="factory-cost">Cost: 130,000</span>
+                    </div>
+                    <div class="item-count" id="factory-count">0</div>
+                </div>
+
+                <div class="upgrade-item disabled" id="buy-bank">
+                    <div class="item-info-left">
+                        <span class="item-name">Bank</span>
+                        <span class="item-cost" id="bank-cost">Cost: 1,400,000</span>
+                    </div>
+                    <div class="item-count" id="bank-count">0</div>
+                </div>
+
+                <div class="upgrade-item disabled" id="buy-alchemy">
+                    <div class="item-info-left">
+                        <span class="item-name">Alchemy Lab</span>
+                        <span class="item-cost" id="alchemy-cost">Cost: 20,000,000</span>
+                    </div>
+                    <div class="item-count" id="alchemy-count">0</div>
+                </div>
+            </div>
+
+            <h2>Advancements</h2>
+            <div class="achievements-section">
+                <div class="achievements-grid">
+                    <div class="achievement-badge" id="ach-1" data-tooltip="First Click (Prize: +10)">☝️</div>
+                    <div class="achievement-badge" id="ach-100" data-tooltip="Centurion: Bake 100 (Prize: +50)">💯</div>
+                    <div class="achievement-badge" id="ach-bot" data-tooltip="Clicker Finger: Buy Cursor (Prize: +25)">🖱️</div>
+                    <div class="achievement-badge" id="ach-speed" data-tooltip="Grandma's Kitchen: 10 CPS (Prize: +250)">👵</div>
+                    <div class="achievement-badge" id="ach-farm" data-tooltip="Gmo Agriculture: Buy Farm (Prize: +500)">🌱</div>
+                    <div class="achievement-badge" id="ach-mine" data-tooltip="Deep Excavation: Buy Mine (Prize: +2,500)">⛏️</div>
+                    <div class="achievement-badge" id="ach-factory" data-tooltip="Mass Production: Buy Factory (Prize: +15,000)">🏭</div>
+                    <div class="achievement-badge" id="ach-bank" data-tooltip="Cookie Capitalism: Buy Bank (Prize: +100,000)">🏦</div>
+                    <div class="achievement-badge" id="ach-alchemy" data-tooltip="Transmutation: Buy Alchemy Lab (Prize: +500,000)">🧪</div>
+                    <div class="achievement-badge" id="ach-ascended" data-tooltip="Immortal Legacy: Ascend Once (Prize: +1,000,000)">🌌</div>
+                    <div class="achievement-badge" id="ach-time1" data-tooltip="Survivor: Play 1 min (Prize: +100)">⏱️</div>
+                    <div class="achievement-badge" id="ach-time5" data-tooltip="Veteran: Play 5 min (Prize: +500)">👑</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State Variables
+        let cookies = 0;
+        let totalCookiesEarned = 0; 
+        let cookiesPerSecond = 0;
+        let timeElapsedSeconds = 0;
+        let equippedSkin = 'classic';
+        let prestigeChips = 0;
+
+        let statManualClicks = 0;
+        let statGoldenClicks = 0;
+        let statCookiesSpent = 0;
+        let statCookiesRefunded = 0;
+        
+        let scoreMultiplier = 1;
+        let frenzyTimeRemaining = 0;
+        let goldenCookieSpawnTimer = Math.floor(Math.random() * 30) + 30; 
+
+        let upgrades = {
+            cursor: { count: 0, baseCost: 15, currentCost: 15, cpsValue: 0.1, icon: '🖱️', domBtn: null, domCost: null, domCount: null },
+            grandma: { count: 0, baseCost: 100, currentCost: 100, cpsValue: 1, icon: '👵', domBtn: null, domCost: null, domCount: null },
+            farm: { count: 0, baseCost: 1100, currentCost: 1100, cpsValue: 8, icon: '🌱', domBtn: null, domCost: null, domCount: null },
+            mine: { count: 0, baseCost: 12000, currentCost: 12000, cpsValue: 47, icon: '⛏️', domBtn: null, domCost: null, domCount: null },
+            factory: { count: 0, baseCost: 130000, currentCost: 130000, cpsValue: 260, icon: '🏭', domBtn: null, domCost: null, domCount: null },
+            bank: { count: 0, baseCost: 1400000, currentCost: 1400000, cpsValue: 1400, icon: '🏦', domBtn: null, domCost: null, domCount: null },
+            alchemy: { count: 0, baseCost: 20000000, currentCost: 20000000, cpsValue: 7800, icon: '🧪', domBtn: null, domCost: null, domCount: null }
+        };
+
+        let skins = {
+            classic: { purchased: true, cost: 0, domId: 'skin-classic', statusId: 'status-classic' },
+            dark: { purchased: false, cost: 300, domId: 'skin-dark', statusId: 'status-dark' },
+            redvelvet: { purchased: false, cost: 5000, domId: 'skin-redvelvet', statusId: 'status-redvelvet' },
+            mint: { purchased: false, cost: 75000, domId: 'skin-mint', statusId: 'status-mint' },
+            gold: { purchased: false, cost: 1000000, domId: 'skin-gold', statusId: 'status-gold' }
+        };
+
+        let advancements = {
+            firstClick: { unlocked: false, id: 'ach-1', name: 'First Click', prize: 10 },
+            hundredCookies: { unlocked: false, id: 'ach-100', name: 'Centurion', prize: 50 },
+            firstBot: { unlocked: false, id: 'ach-bot', name: 'Clicker Finger', prize: 25 },
+            speedDemon: { unlocked: false, id: 'ach-speed', name: "Grandma's Kitchen", prize: 250 },
+            boughtFarm: { unlocked: false, id: 'ach-farm', name: "Gmo Agriculture", prize: 500 },
+            boughtMine: { unlocked: false, id: 'ach-mine', name: "Deep Excavation", prize: 2500 },
+            boughtFactory: { unlocked: false, id: 'ach-factory', name: "Mass Production", prize: 15000 },
+            boughtBank: { unlocked: false, id: 'ach-bank', name: "Cookie Capitalism", prize: 100000 },
+            boughtAlchemy: { unlocked: false, id: 'ach-alchemy', name: "Transmutation", prize: 500000 },
+            ascendedOnce: { unlocked: false, id: 'ach-ascended', name: "Immortal Legacy", prize: 1000000 },
+            survivor: { unlocked: false, id: 'ach-time1', name: 'Survivor (1 Min)', prize: 100 },
+            veteran: { unlocked: false, id: 'ach-time5', name: 'Veteran (5 Min)', prize: 500 }
+        };
+
+        const cookieBtn = document.getElementById('cookie-btn');
+        const clickerZone = document.getElementById('clicker-zone');
+        const cookieCountDisplay = document.getElementById('cookie-count');
+        const cpsDisplay = document.getElementById('cps-count');
+        const orbitRing = document.getElementById('orbit-ring');
+        const frenzyTimerDisplay = document.getElementById('frenzy-timer');
+
+        const cheatPanel = document.getElementById('cheat-panel');
+        const adminCookiesInput = document.getElementById('admin-cookies-amount');
+        const adminAddCookiesBtn = document.getElementById('admin-add-cookies-btn');
+        const adminResetStatsBtn = document.getElementById('admin-reset-stats-btn');
+
+        const statTimeDisplay = document.getElementById('stat-time');
+        const statClicksDisplay = document.getElementById('stat-clicks');
+        const statGoldensDisplay = document.getElementById('stat-goldens');
+        const statSpentDisplay = document.getElementById('stat-spent');
+        const statRefundedDisplay = document.getElementById('stat-refunded');
+        const statLegacyDisplay = document.getElementById('stat-legacy');
+        
+        const prestigeChipsDisplay = document.getElementById('prestige-chips-display');
+        const prestigeBonusDisplay = document.getElementById('prestige-bonus-display');
+        const ascendActionBtn = document.getElementById('ascend-action-btn');
+
+        for (let key in upgrades) {
+            upgrades[key].domBtn = document.getElementById(`buy-${key}`);
+            upgrades[key].domCost = document.getElementById(`${key}-cost`);
+            upgrades[key].domCount = document.getElementById(`${key}-count`);
+        }
+
+        function updateKingdomVisuals(key) {
+            let item = upgrades[key];
+            let rowEl = document.getElementById(`row-${key}`);
+            let countEl = document.getElementById(`v-count-${key}`);
+            let containerEl = document.getElementById(`icons-${key}`);
+
+            if (item.count > 0) {
+                rowEl.style.display = "flex";
+                countEl.textContent = item.count;
+                containerEl.innerHTML = '';
+                // Limit to maximum 35 visual icons per row to avoid interface layout breaking
+                let visualLimit = Math.min(item.count, 35);
+                for (let i = 0; i < visualLimit; i++) {
+                    let span = document.createElement('span');
+                    span.className = 'visual-icon-unit';
+                    span.textContent = item.icon;
+                    containerEl.appendChild(span);
+                }
+                if (item.count > 35) {
+                    let capSpan = document.createElement('span');
+                    capSpan.style.fontSize = '11px';
+                    capSpan.style.color = '#f4be42';
+                    capSpan.style.marginLeft = '5px';
+                    capSpan.textContent = `+${item.count - 35} more`;
+                    containerEl.appendChild(capSpan);
+                }
+            } else {
+                rowEl.style.display = "none";
+            }
+        }
+
+        function saveGame() {
+            const saveState = {
+                cookies: cookies,
+                totalCookiesEarned: totalCookiesEarned,
+                timeElapsedSeconds: timeElapsedSeconds,
+                equippedSkin: equippedSkin,
+                prestigeChips: prestigeChips,
+                statManualClicks: statManualClicks,
+                statGoldenClicks: statGoldenClicks,
+                statCookiesSpent: statCookiesSpent,
+                statCookiesRefunded: statCookiesRefunded,
+                upgradesCount: {},
+                skinsPurchased: {},
+                advancementsUnlocked: {}
+            };
+            for (let key in upgrades) { saveState.upgradesCount[key] = upgrades[key].count; }
+            for (let key in skins) { saveState.skinsPurchased[key] = skins[key].purchased; }
+            for (let key in advancements) { saveState.advancementsUnlocked[key] = advancements[key].unlocked; }
+            
+            localStorage.setItem('cookieClickerSaveMaster', JSON.stringify(saveState));
+        }
+
+        function loadGame() {
+            const savedDataString = localStorage.getItem('cookieClickerSaveMaster');
+            if (!savedDataString) return;
+
+            try {
+                const saveState = JSON.parse(savedDataString);
+                cookies = saveState.cookies || 0;
+                totalCookiesEarned = saveState.totalCookiesEarned || 0;
+                timeElapsedSeconds = saveState.timeElapsedSeconds || 0;
+                equippedSkin = saveState.equippedSkin || 'classic';
+                prestigeChips = saveState.prestigeChips || 0;
+
+                statManualClicks = saveState.statManualClicks || 0;
+                statGoldenClicks = saveState.statGoldenClicks || 0;
+                statCookiesSpent = saveState.statCookiesSpent || 0;
+                statCookiesRefunded = saveState.statCookiesRefunded || 0;
+
+                for (let key in upgrades) {
+                    if (saveState.upgradesCount && saveState.upgradesCount[key] !== undefined) {
+                        upgrades[key].count = saveState.upgradesCount[key];
+                        upgrades[key].currentCost = upgrades[key].baseCost * Math.pow(1.15, upgrades[key].count);
+                        updateKingdomVisuals(key);
+                    }
+                }
+                for (let key in skins) {
+                    if (saveState.skinsPurchased && saveState.skinsPurchased[key] !== undefined) {
+                        skins[key].purchased = saveState.skinsPurchased[key];
+                        if (skins[key].purchased && key !== 'classic') {
+                            document.getElementById(`cost-${key}`).textContent = "Unlocked";
+                        }
+                    }
+                }
+                for (let key in advancements) {
+                    if (saveState.advancementsUnlocked && saveState.advancementsUnlocked[key] !== undefined) {
+                        if (saveState.advancementsUnlocked[key]) {
+                            unlock(key, true); // Silence the notification on boot loading
+                        }
+                    }
+                }
+
+                cookieBtn.className = `cookie skin-${equippedSkin}`;
+                renderOrbitingCursors();
+                calculateCPS();
+            } catch(e) {
+                console.error("Failed loading data models.", e);
+            }
+        }
+
+        function formatTime(seconds) {
+            if (seconds < 60) return `${seconds}s`;
+            let mins = Math.floor(seconds / 60);
+            let secs = seconds % 60;
+            return `${mins}m ${secs}s`;
+        }
+
+        function updateDisplay() {
+            cookieCountDisplay.textContent = Math.floor(cookies) === cookies 
+                ? `${cookies.toLocaleString()} cookies` 
+                : `${cookies.toFixed(1).toLocaleString()} cookies`;
+            
+            let prestigeMultiplier = 1 + (prestigeChips * 0.01);
+            let currentTrueCps = cookiesPerSecond * scoreMultiplier * prestigeMultiplier;
+            cpsDisplay.textContent = `per second: ${currentTrueCps.toFixed(1)}`;
+
+            statTimeDisplay.textContent = formatTime(timeElapsedSeconds);
+            statClicksDisplay.textContent = statManualClicks.toLocaleString();
+            statGoldensDisplay.textContent = statGoldenClicks.toLocaleString();
+            statSpentDisplay.textContent = Math.ceil(statCookiesSpent).toLocaleString();
+            statRefundedDisplay.textContent = Math.ceil(statCookiesRefunded).toLocaleString();
+            statLegacyDisplay.textContent = Math.floor(totalCookiesEarned).toLocaleString();
+
+            prestigeChipsDisplay.textContent = prestigeChips.toLocaleString();
+            prestigeBonusDisplay.textContent = `Production Bonus: +${prestigeChips}%`;
+
+            if (totalCookiesEarned >= 1000000) {
+                ascendActionBtn.classList.remove('locked');
+                let projectChips = Math.floor(Math.sqrt(totalCookiesEarned / 1000000));
+                ascendActionBtn.textContent = `Ascend (+${projectChips} Chips)`;
+            } else {
+                ascendActionBtn.classList.add('locked');
+                ascendActionBtn.textContent = "Ascend (Req: 1.0M Legacy)";
+            }
+
+            for (let key in upgrades) {
+                let item = upgrades[key];
+                item.domCost.textContent = `Cost: ${Math.ceil(item.currentCost).toLocaleString()}`;
+                item.domCount.textContent = item.count;
+                if (cookies >= item.currentCost) item.domBtn.classList.remove('disabled');
+                else item.domBtn.classList.add('disabled');
+            }
+
+            for (let key in skins) {
+                let skinItem = skins[key];
+                let domEl = document.getElementById(skinItem.domId);
+                let statusEl = document.getElementById(skinItem.statusId);
+
+                if (skinItem.purchased) {
+                    domEl.classList.remove('disabled');
+                    if (equippedSkin === key) { domEl.classList.add('equipped'); statusEl.textContent = "Equipped"; }
+                    else { domEl.classList.remove('equipped'); statusEl.textContent = "Equip"; }
+                } else {
+                    if (cookies >= skinItem.cost) domEl.classList.remove('disabled');
+                    else domEl.classList.add('disabled');
+                }
+            }
+        }
+
+        function checkAdvancements(muteNotice = false) {
+            if (totalCookiesEarned >= 1 && !advancements.firstClick.unlocked) unlock('firstClick', muteNotice);
+            if (totalCookiesEarned >= 100 && !advancements.hundredCookies.unlocked) unlock('hundredCookies', muteNotice);
+            if (upgrades.cursor.count >= 1 && !advancements.firstBot.unlocked) unlock('firstBot', muteNotice);
+            if (cookiesPerSecond >= 10 && !advancements.speedDemon.unlocked) unlock('speedDemon', muteNotice);
+            if (upgrades.farm.count >= 1 && !advancements.boughtFarm.unlocked) unlock('boughtFarm', muteNotice);
+            if (upgrades.mine.count >= 1 && !advancements.boughtMine.unlocked) unlock('boughtMine', muteNotice);
+            if (upgrades.factory.count >= 1 && !advancements.boughtFactory.unlocked) unlock('boughtFactory', muteNotice);
+            if (upgrades.bank.count >= 1 && !advancements.boughtBank.unlocked) unlock('boughtBank', muteNotice);
+            if (upgrades.alchemy.count >= 1 && !advancements.boughtAlchemy.unlocked) unlock('boughtAlchemy', muteNotice);
+            if (prestigeChips >= 1 && !advancements.ascendedOnce.unlocked) unlock('ascendedOnce', muteNotice);
+            
+            if (timeElapsedSeconds >= 60 && !advancements.survivor.unlocked) unlock('survivor', muteNotice);
+            if (timeElapsedSeconds >= 300 && !advancements.veteran.unlocked) unlock('veteran', muteNotice);
+        }
+
+        function unlock(key, muteNotice) {
+            let adv = advancements[key];
+            adv.unlocked = true;
+            document.getElementById(adv.id).classList.add('unlocked');
+            if (!muteNotice) {
+                cookies += adv.prize;
+                totalCookiesEarned += adv.prize;
+                createAdvancementAlert(adv.name, adv.prize);
+                saveGame();
+            }
+        }
+
+        function calculateCPS() {
+            let runningTotal = 0;
+            for (let key in upgrades) { runningTotal += (upgrades[key].count * upgrades[key].cpsValue); }
+            cookiesPerSecond = runningTotal;
+        }
+
+        function createFloatingText(textValue, clientX, clientY) {
+            const num = document.createElement('div');
+            num.className = 'floating-number';
+            num.textContent = textValue;
+            if (clientX !== undefined && clientY !== undefined) {
+                num.style.left = `${clientX}px`; num.style.top = `${clientY}px`;
+            } else {
+                let wrapper = document.getElementById('cookie-wrapper');
+                let leftOffset = wrapper.offsetLeft + (wrapper.offsetWidth / 2);
+                let topOffset = wrapper.offsetTop + (wrapper.offsetHeight / 2);
+                num.style.left = `${leftOffset}px`; num.style.top = `${topOffset}px`;
+            }
+            clickerZone.appendChild(num);
+            setTimeout(() => num.remove(), 800);
+        }
+
+        function createAdvancementAlert(name, prizeAmount) {
+            const alertBox = document.createElement('div');
+            alertBox.className = 'achievement-alert';
+            alertBox.innerHTML = `🏆 <strong>${name}</strong> Unlocked!<br>+${prizeAmount.toLocaleString()} Cookies awarded!`;
+            clickerZone.appendChild(alertBox);
+            setTimeout(() => alertBox.remove(), 2500);
+        }
+
+        function spawnGoldenCookie() {
+            const oldGold = document.querySelector('.golden-cookie');
+            if (oldGold) oldGold.remove();
+
+            const gold = document.createElement('div');
+            gold.className = 'golden-cookie';
+            gold.innerHTML = '✨🍪✨';
+
+            const leftPos = Math.random() * (clickerZone.offsetWidth - 80) + 20;
+            const topPos = Math.random() * (clickerZone.offsetHeight - 160) + 60;
+            gold.style.left = `${leftPos}px`;
+            gold.style.top = `${topPos}px`;
+
+            gold.addEventListener('click', (e) => {
+                e.stopPropagation();
+                statGoldenClicks++;
+                frenzyTimeRemaining = 15; 
+                scoreMultiplier = 7;
+                frenzyTimerDisplay.style.visibility = 'visible';
+                frenzyTimerDisplay.textContent = `Frenzy: ${frenzyTimeRemaining}s remaining`;
+                createFloatingText("✨ 7x FRENZY! ✨", e.clientX, e.clientY);
+                gold.remove();
+                updateDisplay();
+                saveGame();
+            });
+
+            clickerZone.appendChild(gold);
+            setTimeout(() => { if(gold) gold.remove(); }, 7000);
+        }
+
+        function renderOrbitingCursors() {
+            orbitRing.innerHTML = '';
+            // Cap orbital visuals cleanly so it doesn't crowd out the screen space
+            const total = Math.min(upgrades.cursor.count, 40);
+            const radius = 110; 
+            for (let i = 0; i < total; i++) {
+                const angle = (i / total) * 360; 
+                const cursor = document.createElement('div');
+                cursor.className = 'orbiting-cursor';
+                cursor.innerHTML = '🖱️';
+                cursor.style.transform = `rotate(${angle}deg) translateY(-${radius}px) rotate(-45deg)`;
+                orbitRing.appendChild(cursor);
+            }
+        }
+
+        function handleCookieBakeAction(clientX, clientY) {
+            let clickIncrementValue = 1 * scoreMultiplier * (1 + (prestigeChips * 0.01));
+            cookies += clickIncrementValue;
+            totalCookiesEarned += clickIncrementValue;
+            statManualClicks++;
+            createFloatingText(`+${clickIncrementValue.toFixed(1)}`, clientX, clientY);
+            
+            cookieBtn.classList.remove('clicked');
+            void cookieBtn.offsetWidth; 
+            cookieBtn.classList.add('clicked');
+            updateDisplay();
+        }
+
+        cookieBtn.addEventListener('click', (e) => {
+            handleCookieBakeAction(e.clientX, e.clientY);
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.keyCode === 32) {
+                e.preventDefault();
+                handleCookieBakeAction(undefined, undefined);
+            }
+            if (e.key === '`' || e.keyCode === 192) {
+                e.preventDefault();
+                cheatPanel.classList.toggle('open');
+            }
+        });
+
+        cookieBtn.addEventListener('animationend', (e) => {
+            if (e.animationName === 'cookieScalePop') cookieBtn.classList.remove('clicked');
+        });
+
+        function bindPurchase(key) {
+            let item = upgrades[key];
+            item.domBtn.addEventListener('click', () => {
+                if (cookies >= item.currentCost) {
+                    cookies -= item.currentCost;
+                    statCookiesSpent += item.currentCost;
+                    item.count++;
+                    item.currentCost = item.baseCost * Math.pow(1.15, item.count);
+                    
+                    if (key === 'cursor') renderOrbitingCursors();
+                    
+                    updateKingdomVisuals(key);
+                    calculateCPS();
+                    updateDisplay();
+                    saveGame();
+                }
+            });
+        }
+
+        function bindSelling(key) {
+            let sellBtn = document.getElementById(`sell-${key}`);
+            sellBtn.addEventListener('click', (e) => {
+                let item = upgrades[key];
+                if (item.count > 0) {
+                    let refundValue = Math.floor(item.currentCost / 2);
+                    
+                    cookies += refundValue;
+                    statCookiesRefunded += refundValue;
+                    item.count--;
+                    
+                    item.currentCost = item.baseCost * Math.pow(1.15, item.count);
+                    createFloatingText(`+${refundValue.toLocaleString()}`, e.clientX, e.clientY);
+
+                    if (key === 'cursor') renderOrbitingCursors();
+                    
+                    updateKingdomVisuals(key);
+                    calculateCPS();
+                    updateDisplay();
+                    saveGame();
+                }
+            });
+        }
+
+        function bindSkinEvents(key) {
+            let skinItem = skins[key];
+            let domEl = document.getElementById(skinItem.domId);
+            domEl.addEventListener('click', () => {
+                if (skinItem.purchased) {
+                    cookieBtn.className = `cookie skin-${key}`;
+                    equippedSkin = key;
+                    updateDisplay();
+                    saveGame();
+                } else if (cookies >= skinItem.cost) {
+                    cookies -= skinItem.cost;
+                    statCookiesSpent += skinItem.cost;
+                    skinItem.purchased = true;
+                    document.getElementById(`cost-${key}`).textContent = "Unlocked";
+                    cookieBtn.className = `cookie skin-${key}`;
+                    equippedSkin = key;
+                    updateDisplay();
+                    saveGame();
+                }
+            });
+        }
+
+        ascendActionBtn.addEventListener('click', () => {
+            if (totalCookiesEarned >= 1000000) {
+                let earnedChips = Math.floor(Math.sqrt(totalCookiesEarned / 1000000));
+                prestigeChips += earnedChips;
+
+                cookies = 0;
+                cookiesPerSecond = 0;
+                scoreMultiplier = 1;
+                frenzyTimeRemaining = 0;
+                frenzyTimerDisplay.style.visibility = 'hidden';
+
+                for (let key in upgrades) {
+                    upgrades[key].count = 0;
+                    upgrades[key].currentCost = upgrades[key].baseCost;
+                    updateKingdomVisuals(key);
+                }
+
+                renderOrbitingCursors();
+                calculateCPS();
+                updateDisplay();
+                createFloatingText(`Ascended! +${earnedChips} Chips`, undefined, undefined);
+                saveGame();
+            }
+        });
+
+        adminAddCookiesBtn.addEventListener('click', () => {
+            let amt = parseInt(adminCookiesInput.value);
+            if (!isNaN(amt) && amt > 0) {
+                cookies += amt;
+                totalCookiesEarned += amt;
+                createFloatingText(`+${amt.toLocaleString()} Injected!`, undefined, undefined);
+                adminCookiesInput.value = '';
+                updateDisplay();
+                saveGame();
+            }
+        });
+
+        adminResetStatsBtn.addEventListener('click', () => {
+            if(confirm("Are you absolutely sure you want to delete your save file and restart entirely from scratch?")) {
+                localStorage.removeItem('cookieClickerSaveMaster');
+                location.reload();
+            }
+        });
+
+        for (let key in upgrades) { bindPurchase(key); bindSelling(key); }
+        for (let key in skins) { bindSkinEvents(key); }
+
+        const frameRate = 30; 
+        setInterval(() => {
+            if (cookiesPerSecond > 0) {
+                let prestigeMultiplier = 1 + (prestigeChips * 0.01);
+                let trueCpsValue = cookiesPerSecond * scoreMultiplier * prestigeMultiplier;
+                let chunk = trueCpsValue / frameRate;
+                cookies += chunk;
+                totalCookiesEarned += chunk;
+                updateDisplay();
+            }
+        }, 1000 / frameRate);
+
+        setInterval(() => {
+            timeElapsedSeconds++;
+            if (frenzyTimeRemaining > 0) {
+                frenzyTimeRemaining--;
+                if (frenzyTimeRemaining <= 0) {
+                    scoreMultiplier = 1;
+                    frenzyTimerDisplay.style.visibility = 'hidden';
+                } else {
+                    frenzyTimerDisplay.textContent = `Frenzy: ${frenzyTimeRemaining}s remaining`;
+                }
+            }
+
+            goldenCookieSpawnTimer--;
+            if (goldenCookieSpawnTimer <= 0) {
+                spawnGoldenCookie();
+                goldenCookieSpawnTimer = Math.floor(Math.random() * 45) + 45; 
+            }
+            checkAdvancements();
+        }, 1000);
+
+        // Auto-save routine loop interval
+        setInterval(() => { saveGame(); }, 7000);
+
+        loadGame();
+        updateDisplay();
+    </script>
+</body>
+</html>
